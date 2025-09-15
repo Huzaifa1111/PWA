@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { getSalesHistory } from '../../lib/db';
+import { getSalesHistory } from '../app/lib/db';
 
 export default function History() {
   const [sales, setSales] = useState([]);
