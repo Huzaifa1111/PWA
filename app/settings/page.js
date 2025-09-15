@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { format } from 'date-fns';
-import { setDailyPrices } from '../app/lib/db';
+import { setDailyPrices } from '../lib/db';
 
 export default function Settings() {
   const [prices, setPrices] = useState({ corns: 0, maize: 0, flour: 0 });
