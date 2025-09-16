@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { format } from 'date-fns';
-import { setDailyPrices, getDailyPrices } from '../../lib/db';
+import { setDailyPrices, getDailyPrices, syncData } from '../../lib/db';
 
 export default function Settings() {
   const [prices, setPrices] = useState({ corns: '', maize: '', flour: '' });
@@ -11,30 +11,33 @@ export default function Settings() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
 
-
-
- useEffect(() => {
-  async function loadPrices() {
-    try {
-      setLoading(true);
-      const todayDate = format(new Date(), 'yyyy-MM-dd');
-      setToday(todayDate);
-      const { prices: savedPrices } = await getDailyPrices(todayDate);
-      console.log('Loaded prices for Settings:', savedPrices);
-      setPrices({
-        corns: savedPrices.corns !== undefined ? savedPrices.corns.toString() : '',
-        maize: savedPrices.maize !== undefined ? savedPrices.maize.toString() : '',
-        flour: savedPrices.flour !== undefined ? savedPrices.flour.toString() : '',
-      });
-    } catch (err) {
-      console.error('Error loading prices:', err);
-      setModalMessage('Failed to load prices. Please clear browser data and try again.');
-    } finally {
-      setLoading(false);
+  useEffect(() => {
+    async function loadPrices() {
+      try {
+        setLoading(true);
+        const todayDate = format(new Date(), 'yyyy-MM-dd');
+        setToday(todayDate);
+        const { prices: savedPrices } = await getDailyPrices(todayDate);
+        console.log('Loaded prices for Settings:', savedPrices);
+        setPrices({
+          corns: savedPrices.corns !== undefined ? savedPrices.corns.toString() : '',
+          maize: savedPrices.maize !== undefined ? savedPrices.maize.toString() : '',
+          flour: savedPrices.flour !== undefined ? savedPrices.flour.toString() : '',
+        });
+        // Trigger sync when online
+        await syncData();
+      } catch (err) {
+        console.error('Error loading prices:', err);
+        setModalMessage('Failed to load prices. Please clear browser data and try again.');
+      } finally {
+        setLoading(false);
+      }
     }
-  }
-  loadPrices();
-}, []);
+    loadPrices();
+    // Add online event listener for sync
+    window.addEventListener('online', syncData);
+    return () => window.removeEventListener('online', syncData);
+  }, []);
 
   const handleChange = (e) => {
     const value = e.target.value;
@@ -60,25 +63,29 @@ export default function Settings() {
     try {
       await setDailyPrices(today, numericPrices);
       setModalMessage('Prices set successfully!');
+      // Trigger sync if online
+      if (navigator.onLine) {
+        await syncData();
+      }
     } catch (err) {
       console.error('Error in handleSubmit:', err);
-      setModalMessage(`Failed to save prices: ${err.message || 'Unknown error'}. Please try again.`);
+      setModalMessage(`Failed to save prices: ${err.message || 'Unknown error'}. Please clear browser data and try again.`);
     }
   };
 
   const clearPrices = () => {
-  setPrices({ corns: '', maize: '', flour: '' });
-  setError('');
-};
+    setPrices({ corns: '', maize: '', flour: '' });
+    setError('');
+  };
 
   const closeModal = () => setModalMessage('');
 
   return (
     <div className="p-6 bg-white rounded-lg shadow max-w-lg mx-auto">
-      {loading && <p className="text-gray-500 mb-4">Loading prices...</p>}
       <h1 className="text-2xl font-bold mb-4">
         Set Daily Prices {today && `- ${today}`}
       </h1>
+      {loading && <p className="text-gray-500 mb-4">Loading prices...</p>}
       {error && <p className="text-red-500 mb-4">{error}</p>}
       <div className="space-y-4">
         <input
@@ -118,11 +125,11 @@ export default function Settings() {
           Save Prices
         </button>
         <button
-  onClick={clearPrices}
-  className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 transition w-full mt-2"
->
-  Clear Prices
-</button>
+          onClick={clearPrices}
+          className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 transition w-full mt-2"
+        >
+          Clear Prices
+        </button>
       </div>
       {modalMessage && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
