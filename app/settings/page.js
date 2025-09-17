@@ -25,7 +25,13 @@ export default function Settings() {
           flour: savedPrices.flour !== undefined ? savedPrices.flour.toString() : '',
         });
         // Trigger sync when online
-        await syncData();
+        try {
+          await syncData();
+          console.log('Initial sync completed');
+        } catch (err) {
+          console.warn('Initial sync failed:', err);
+          setModalMessage('Failed to sync data. Offline changes will sync when online.');
+        }
       } catch (err) {
         console.error('Error loading prices:', err);
         setModalMessage('Failed to load prices. Please clear browser data and try again.');
@@ -35,8 +41,17 @@ export default function Settings() {
     }
     loadPrices();
     // Add online event listener for sync
-    window.addEventListener('online', syncData);
-    return () => window.removeEventListener('online', syncData);
+    const handleOnline = async () => {
+      try {
+        await syncData();
+        console.log('Online sync completed');
+      } catch (err) {
+        console.warn('Online sync failed:', err);
+        setModalMessage('Failed to sync data. Offline changes will sync later.');
+      }
+    };
+    window.addEventListener('online', handleOnline);
+    return () => window.removeEventListener('online', handleOnline);
   }, []);
 
   const handleChange = (e) => {
@@ -65,7 +80,13 @@ export default function Settings() {
       setModalMessage('Prices set successfully!');
       // Trigger sync if online
       if (navigator.onLine) {
-        await syncData();
+        try {
+          await syncData();
+          console.log('Post-save sync completed');
+        } catch (err) {
+          console.warn('Post-save sync failed:', err);
+          setModalMessage('Prices saved, but failed to sync data. Offline changes will sync when online.');
+        }
       }
     } catch (err) {
       console.error('Error in handleSubmit:', err);

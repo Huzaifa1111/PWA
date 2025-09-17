@@ -1,173 +1,222 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState, useEffect } from 'react';
 import { format } from 'date-fns';
 import ItemCard from '../components/ItemCard';
-import { getDailyPrices, addSale, syncData } from '../lib/db';
-
-const items = ['corns', 'maize', 'flour'];
+import { getDailyPrices, syncData, addSale } from '../lib/db';
 
 export default function Home() {
+  const items = ['corns', 'maize', 'flour'];
   const [prices, setPrices] = useState({ corns: 0, maize: 0, flour: 0 });
-  const [pricesLoaded, setPricesLoaded] = useState(false);
+  const [today, setToday] = useState('');
   const [modalMessage, setModalMessage] = useState('');
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [currentItem, setCurrentItem] = useState('');
-  const [currentType, setCurrentType] = useState('');
-  const [name, setName] = useState('');
-  const [rate, setRate] = useState('');
-  const [kilo, setKilo] = useState('');
-  const today = format(new Date(), 'yyyy-MM-dd');
+  const [modal, setModal] = useState({ open: false, item: '', type: '' });
+  const [formData, setFormData] = useState({
+    name: '',
+    rate: '',
+    mun: '',
+    kilo: '',
+    total: 0
+  });
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     async function loadPrices() {
       try {
-        const { prices: dailyPrices } = await getDailyPrices(today);
-        setPrices(dailyPrices);
-        setPricesLoaded(true);
-        if (Object.values(dailyPrices).every(p => p === 0)) {
-          setModalMessage('Warning: Prices are zero. Set prices in Settings first for accurate totals.');
+        setLoading(true);
+        const todayDate = format(new Date(), 'yyyy-MM-dd');
+        setToday(todayDate);
+        const { prices: savedPrices } = await getDailyPrices(todayDate);
+        console.log('Loaded prices:', savedPrices);
+        setPrices({
+          corns: savedPrices.corns || 0,
+          maize: savedPrices.maize || 0,
+          flour: savedPrices.flour || 0,
+        });
+        try {
+          await syncData();
+          console.log('Initial sync completed');
+        } catch (err) {
+          console.warn('Initial sync failed:', err);
+          setModalMessage('Failed to sync data. Offline changes will sync when online.');
         }
-        // Trigger sync when online
-        await syncData();
       } catch (err) {
         console.error('Error loading prices:', err);
-        setModalMessage('Failed to load prices. Please try again.');
-        setPricesLoaded(true);
+        setModalMessage('Failed to load prices. Please clear browser data and try again.');
+      } finally {
+        setLoading(false);
       }
     }
     loadPrices();
-    // Add online event listener for sync
-    window.addEventListener('online', syncData);
-    return () => window.removeEventListener('online', syncData);
+    const handleOnline = async () => {
+      try {
+        await syncData();
+        console.log('Online sync completed');
+      } catch (err) {
+        console.warn('Online sync failed:', err);
+        setModalMessage('Failed to sync data. Offline changes will sync later.');
+      }
+    };
+    window.addEventListener('online', handleOnline);
+    return () => window.removeEventListener('online', handleOnline);
   }, []);
 
-  const openModal = (item, type) => {
-    setCurrentItem(item);
-    setCurrentType(type);
-    setRate(type === 'sold' ? prices[item].toString() : '');
-    setName('');
-    setKilo('');
-    setIsModalOpen(true);
+  const handleOpenModal = (item, type) => {
+    console.log('Opening modal for', item, type);
+    setModal({ open: true, item, type });
+    setFormData({
+      name: '',
+      rate: type === 'sold' ? prices[item] : '',
+      mun: '',
+      kilo: '',
+      total: 0
+    });
+    setModalMessage('');
   };
 
-  const handleSale = async () => {
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    let updatedFormData = { ...formData, [name]: value };
+    if (name === 'mun' || name === 'kilo') {
+      const mun = parseFloat(updatedFormData.mun) || 0;
+      const kilo = parseFloat(updatedFormData.kilo) || 0;
+      const rate = parseFloat(updatedFormData.rate) || 0;
+      const totalKilos = mun * 50 + kilo;
+      const total = totalKilos * rate;
+      updatedFormData = { ...updatedFormData, total: isNaN(total) ? 0 : total };
+    } else if (name === 'rate') {
+      const mun = parseFloat(formData.mun) || 0;
+      const kilo = parseFloat(formData.kilo) || 0;
+      const totalKilos = mun * 50 + kilo;
+      const total = totalKilos * parseFloat(value || 0);
+      updatedFormData = { ...updatedFormData, total: isNaN(total) ? 0 : total };
+    }
+    setFormData(updatedFormData);
+  };
+
+  const handleAddSale = async () => {
+    console.log('Adding sale:', formData, modal);
+    const { name, rate, mun, kilo } = formData;
+    if (!name || !rate || (!mun && !kilo)) {
+      setModalMessage('Please fill out all fields.');
+      return;
+    }
+    const parsedRate = parseFloat(rate);
+    const totalKilos = (parseFloat(mun) || 0) * 50 + (parseFloat(kilo) || 0);
+    if (parsedRate <= 0 || totalKilos <= 0) {
+      setModalMessage('Rate and weight must be greater than 0.');
+      return;
+    }
+    const sale = {
+      date: today,
+      timestamp: new Date().toISOString(),
+      name,
+      item: modal.item,
+      rate: parsedRate,
+      kilos: totalKilos,
+      total: totalKilos * parsedRate,
+      type: modal.type
+    };
     try {
-      const parsedRate = parseFloat(rate);
-      const parsedKilo = parseFloat(kilo);
-      if (!name || isNaN(parsedRate) || parsedRate <= 0 || isNaN(parsedKilo) || parsedKilo <= 0) {
-        setModalMessage('Please enter valid name, rate, and kilos.');
-        return;
-      }
-      const total = parsedRate * parsedKilo;
-      const timestamp = new Date().toISOString();
-      const success = await addSale({ 
-        date: today, 
-        timestamp, 
-        name, 
-        item: currentItem, 
-        rate: parsedRate, 
-        kilos: parsedKilo, 
-        total, 
-        type: currentType 
-      });
-      setModalMessage(success ? 'Entry added successfully!' : 'Error adding entry. Please try again.');
+      const success = await addSale(sale);
       if (success) {
-        setIsModalOpen(false);
-        setName('');
-        setRate('');
-        setKilo('');
-      }
-      // Trigger sync if online
-      if (navigator.onLine) {
-        await syncData();
+        setModalMessage('Entry added successfully!');
+        setModal({ open: false, item: '', type: '' });
+        setFormData({ name: '', rate: '', mun: '', kilo: '', total: 0 });
+      } else {
+        setModalMessage('Failed to add entry. Please try again.');
       }
     } catch (err) {
-      console.error('Error in handleSale:', err);
-      setModalMessage('Error adding entry. Please try again.');
+      console.error('Error adding sale:', err);
+      setModalMessage(`Failed to add entry: ${navigator.onLine ? err.message : 'Saved offline, will sync when online.'}`);
     }
   };
 
-  const closeModal = () => setModalMessage('');
-
-  if (!pricesLoaded) return <p className="text-center mt-4">Loading prices...</p>;
+  const closeModal = () => {
+    setModal({ open: false, item: '', type: '' });
+    setModalMessage('');
+    setFormData({ name: '', rate: '', mun: '', kilo: '', total: 0 });
+  };
 
   return (
     <div className="p-6">
-      <h1 className="text-2xl font-bold mb-4">POS Sales - {today}</h1>
-      {Object.values(prices).every(p => p === 0) && (
-        <p className="text-red-500 mb-4">
-          Prices not set for today. Go to <a href="/settings" className="underline">Settings</a> to set prices.
-        </p>
-      )}
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mb-6">
-        {items.map(item => (
-          <ItemCard
-            key={item}
-            name={item}
-            price={prices[item]}
-            onBought={() => openModal(item, 'bought')}
-            onSold={() => openModal(item, 'sold')}
-          />
-        ))}
-      </div>
-      {isModalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white p-6 rounded-lg shadow-lg w-96">
-            <h2 className="text-xl font-bold mb-4">{currentType.toUpperCase()} {currentItem}</h2>
-            <input 
-              type="text" 
-              value={name} 
-              onChange={(e) => setName(e.target.value)} 
-              placeholder="Name" 
-              className="border p-2 w-full mb-2" 
-            />
-            <input 
-              type="number" 
-              value={rate} 
-              onChange={(e) => setRate(e.target.value)} 
-              placeholder="Rate" 
-              className="border p-2 w-full mb-2" 
-              step="0.01" 
-              min="0" 
-            />
-            <input 
-              type="number" 
-              value={kilo} 
-              onChange={(e) => setKilo(e.target.value)} 
-              placeholder="Kilo" 
-              className="border p-2 w-full mb-2" 
-              step="0.01" 
-              min="0" 
-            />
-            <p className="mb-4">Total: ${(parseFloat(rate) * parseFloat(kilo) || 0).toFixed(2)}</p>
-            <button 
-              onClick={handleSale} 
-              className="bg-blue-500 text-white px-4 py-2 rounded mr-2"
-            >
-              Add to Sale
-            </button>
-            <button 
-              onClick={() => setIsModalOpen(false)} 
-              className="bg-gray-500 text-white px-4 py-2 rounded"
-            >
-              Cancel
-            </button>
+      {loading && <p className="text-gray-500 mb-4">Loading prices...</p>}
+      {!loading && (
+        <>
+          <h1 className="text-2xl font-bold mb-4">Point of Sale</h1>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {items.map((item) => (
+              <ItemCard
+                key={item}
+                item={item}
+                price={prices[item]}
+                onBuy={() => handleOpenModal(item, 'bought')}
+                onSell={() => handleOpenModal(item, 'sold')}
+              />
+            ))}
           </div>
-        </div>
-      )}
-      {modalMessage && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white p-6 rounded-lg shadow-lg max-w-sm w-full">
-            <p className="mb-4 text-center">{modalMessage}</p>
-            <button
-              onClick={closeModal}
-              className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 w-full"
-            >
-              Close
-            </button>
-          </div>
-        </div>
+          {modal.open && (
+            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+              <div className="bg-white p-6 rounded-lg shadow-lg max-w-sm w-full">
+                <h2 className="text-xl font-bold mb-4">
+                  {modal.type === 'bought' ? 'Buy' : 'Sell'} {modal.item.charAt(0).toUpperCase() + modal.item.slice(1)}
+                </h2>
+                {modalMessage && <p className="text-red-500 mb-4">{modalMessage}</p>}
+                <input
+                  name="name"
+                  type="text"
+                  value={formData.name}
+                  onChange={handleInputChange}
+                  placeholder="Customer Name"
+                  className="border p-2 w-full mb-4 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+                <input
+                  name="rate"
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  value={formData.rate}
+                  onChange={handleInputChange}
+                  placeholder="Rate per kilo"
+                  className="border p-2 w-full mb-4 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+                <div className="flex space-x-2 mb-4">
+                  <input
+                    name="mun"
+                    type="number"
+                    min="0"
+                    value={formData.mun}
+                    onChange={handleInputChange}
+                    placeholder="Mun"
+                    className="border p-2 w-1/2 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                  <input
+                    name="kilo"
+                    type="number"
+                    min="0"
+                    value={formData.kilo}
+                    onChange={handleInputChange}
+                    placeholder="Kilo"
+                    className="border p-2 w-1/2 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+                <p className="mb-4">Total: ${formData.total.toFixed(2)}</p>
+                <button
+                  onClick={handleAddSale}
+                  className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 w-full mb-2"
+                >
+                  Add to Sale
+                </button>
+                <button
+                  onClick={closeModal}
+                  className="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600 w-full"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          )}
+        </>
       )}
     </div>
   );
