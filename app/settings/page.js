@@ -24,7 +24,6 @@ export default function Settings() {
           maize: savedPrices.maize !== undefined ? savedPrices.maize.toString() : '',
           flour: savedPrices.flour !== undefined ? savedPrices.flour.toString() : '',
         });
-        // Trigger sync when online
         try {
           await syncData();
           console.log('Initial sync completed');
@@ -40,7 +39,6 @@ export default function Settings() {
       }
     }
     loadPrices();
-    // Add online event listener for sync
     const handleOnline = async () => {
       try {
         await syncData();
@@ -78,7 +76,6 @@ export default function Settings() {
     try {
       await setDailyPrices(today, numericPrices);
       setModalMessage('Prices set successfully!');
-      // Trigger sync if online
       if (navigator.onLine) {
         try {
           await syncData();

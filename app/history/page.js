@@ -28,7 +28,7 @@ export default function History() {
       if (!grouped[sale.date]) {
         grouped[sale.date] = { sold: { corns: [], maize: [], flour: [] }, bought: { corns: [], maize: [], flour: [] } };
       }
-      const type = sale.type || 'sold'; // Handle old data without type, assume 'sold'
+      const type = sale.type || 'sold'; // Handle old data without type
       if (sale.item && grouped[sale.date][type][sale.item]) {
         grouped[sale.date][type][sale.item].push(sale);
       }

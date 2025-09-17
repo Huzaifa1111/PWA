@@ -2,8 +2,7 @@ export async function POST(request) {
   try {
     const data = await request.json();
     console.log('Received sync data:', data);
-    // Here you would typically save to a server-side database (e.g., MongoDB, PostgreSQL)
-    // For demo, just log and return success
+    // Placeholder for server-side database save
     return new Response(JSON.stringify({ success: true }), {
       status: 200,
       headers: { 'Content-Type': 'application/json' },

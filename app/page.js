@@ -103,8 +103,8 @@ export default function Home() {
     }
     const parsedRate = parseFloat(rate);
     const totalKilos = (parseFloat(mun) || 0) * 50 + (parseFloat(kilo) || 0);
-    if (parsedRate <= 0 || totalKilos <= 0) {
-      setModalMessage('Rate and weight must be greater than 0.');
+    if (isNaN(parsedRate) || parsedRate <= 0 || isNaN(totalKilos) || totalKilos <= 0) {
+      setModalMessage('Rate and weight must be valid numbers greater than 0.');
       return;
     }
     const sale = {
@@ -117,6 +117,7 @@ export default function Home() {
       total: totalKilos * parsedRate,
       type: modal.type
     };
+    console.log('Sale object to be added:', sale);
     try {
       const success = await addSale(sale);
       if (success) {
@@ -128,7 +129,10 @@ export default function Home() {
       }
     } catch (err) {
       console.error('Error adding sale:', err);
-      setModalMessage(`Failed to add entry: ${navigator.onLine ? err.message : 'Saved offline, will sync when online.'}`);
+      const message = navigator.onLine
+        ? `Failed to add entry: ${err.message || 'Unknown error'}. Please try again.`
+        : 'Saved offline, will sync when online.';
+      setModalMessage(message);
     }
   };
 
