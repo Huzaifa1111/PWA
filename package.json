@@ -11,6 +11,8 @@
   },
   "dependencies": {
     "date-fns": "^4.1.0",
+    "flowbite": "^3.1.2",
+    "flowbite-react": "^0.12.9",
     "idb": "^8.0.3",
     "next": "15.5.3",
     "next-pwa": "^5.6.0",

@@ -1,25 +1,45 @@
-'use client';
+"use client";
 
-import PropTypes from 'prop-types';
+import PropTypes from "prop-types";
 
-function ItemCard({ item, price, onBuy, onSell }) {
+function ItemCard({ item, price, imageUrl, onBuy, onSell }) {
   return (
-    <div className="border p-4 rounded-lg shadow-md bg-white">
-      <h2 className="text-lg font-semibold capitalize">{item}</h2>
-      <p className="text-gray-600">Price: ${Number(price).toFixed(2)}</p>
-      <div className="mt-4 flex space-x-2">
-        <button
-          onClick={onBuy}
-          className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 transition"
-        >
-          Bought
-        </button>
-        <button
-          onClick={onSell}
-          className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition"
-        >
-          Sold
-        </button>
+    <div className="w-full max-w-sm bg-white border border-gray-200 rounded-lg shadow-sm dark:bg-gray-800 dark:border-gray-700">
+      <div className="flex flex-col items-center pb-10">
+        <img
+  className="w-24 h-24 mb-3 rounded-full shadow-lg"
+  src={imageUrl}
+  alt={`${item} image`}
+/>
+
+
+
+        <h5 className="mb-1 text-xl font-medium text-gray-900 dark:text-white capitalize">
+          {item}
+        </h5>
+        <span className="text-sm text-gray-500 dark:text-gray-400">
+          Price: ${Number(price).toFixed(2)}
+        </span>
+
+        <div className="flex mt-4 md:mt-6 space-x-2">
+          <button
+            onClick={onBuy}
+            className="relative inline-flex items-center justify-center p-0.5 mb-2 me-2 overflow-hidden text-md font-medium text-gray-900 rounded-lg group bg-gradient-to-br from-teal-300 to-lime-300 group-hover:from-teal-300 group-hover:to-lime-300 dark:text-white dark:hover:text-gray-900 focus:ring-4 focus:outline-none focus:ring-lime-200 dark:focus:ring-lime-800"
+          >
+            <span className="relative px-12 py-2 transition-all ease-in duration-75 bg-white dark:bg-gray-900 rounded-md group-hover:bg-transparent group-hover:dark:bg-transparent">
+              Bought
+            </span>
+          </button>
+
+          <button
+            onClick={onSell}
+            className="relative inline-flex items-center justify-center p-0.5 mb-2 me-2 overflow-hidden text-medium font-medium text-gray-900 rounded-lg group bg-gradient-to-br from-pink-500 to-orange-400 group-hover:from-pink-500 group-hover:to-orange-400 hover:text-white dark:text-white focus:ring-4 focus:outline-none focus:ring-pink-200 dark:focus:ring-pink-800"
+          >
+            <span className="relative px-16 py-2.5 transition-all ease-in duration-75 bg-white dark:bg-gray-900 rounded-md group-hover:bg-transparent group-hover:dark:bg-transparent">
+              Sold
+            </span>
+          </button>
+        </div>
       </div>
     </div>
   );
@@ -28,6 +48,7 @@ function ItemCard({ item, price, onBuy, onSell }) {
 ItemCard.propTypes = {
   item: PropTypes.string.isRequired,
   price: PropTypes.number.isRequired,
+  imageUrl: PropTypes.string.isRequired,
   onBuy: PropTypes.func.isRequired,
   onSell: PropTypes.func.isRequired,
 };
