@@ -6,16 +6,16 @@ import ItemCard from "../components/ItemCard";
 import { getDailyPrices, syncData, addSale } from "../lib/db";
 
 export default function Home() {
-  const items = ["corns", "maize", "flour"];
+  const items = ["corns", "mustard", "wheat"];
 
   // map each item to its image (from /public folder)
   const itemImages = {
     corns: "/SweetCorns.jpg",
-    maize: "/Mustard1.png",
-    flour: "/Wheet.jpg",
+    mustard: "/Mustard1.png",
+    wheat: "/wheet.jpg",
   };
 
-  const [prices, setPrices] = useState({ corns: 0, maize: 0, flour: 0 });
+  const [prices, setPrices] = useState({ corns: 0, mustard: 0, wheat: 0 });
   const [today, setToday] = useState("");
   const [modalMessage, setModalMessage] = useState("");
   const [modal, setModal] = useState({ open: false, item: "", type: "" });
@@ -38,8 +38,8 @@ export default function Home() {
         console.log("Loaded prices:", savedPrices);
         setPrices({
           corns: savedPrices.corns || 0,
-          maize: savedPrices.maize || 0,
-          flour: savedPrices.flour || 0,
+          mustard: savedPrices.mustard || 0,
+          wheat: savedPrices.wheat || 0,
         });
         try {
           await syncData();
@@ -189,9 +189,9 @@ export default function Home() {
           </div>
 
           {modal.open && (
-            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="p-6 fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
               <div className="bg-white p-6 rounded-lg shadow-lg max-w-sm w-full">
-                <h2 className="text-xl font-bold mb-4">
+                <h2 className="text-xl text-gray-700 font-bold mb-2">
                   {modal.type === "bought" ? "Buy" : "Sell"}{" "}
                   {modal.item.charAt(0).toUpperCase() +
                     modal.item.slice(1)}
@@ -206,7 +206,7 @@ export default function Home() {
                   value={formData.name}
                   onChange={handleInputChange}
                   placeholder="Customer Name"
-                  className="border p-2 w-full mb-4 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="text-gray-700 p-1 border border-gray-700  w-full mb-4 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
                 <input
                   name="rate"
@@ -216,7 +216,7 @@ export default function Home() {
                   value={formData.rate}
                   onChange={handleInputChange}
                   placeholder="Rate per kilo"
-                  className="border p-2 w-full mb-4 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="text-gray-700 p-1 border border-gray-700 w-full mb-4 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
                 <div className="flex space-x-2 mb-4">
                   <input
@@ -226,7 +226,7 @@ export default function Home() {
                     value={formData.mun}
                     onChange={handleInputChange}
                     placeholder="Mun"
-                    className="border p-2 w-1/2 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="text-gray-700 p-1 border border-gray-700 w-1/2 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                   <input
                     name="kilo"
@@ -235,11 +235,11 @@ export default function Home() {
                     value={formData.kilo}
                     onChange={handleInputChange}
                     placeholder="Kilo"
-                    className="border p-2 w-1/2 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="text-gray-700 p-1 border border-gray-700 w-1/2 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
-                <p className="mb-4">
-                  Total: ${formData.total.toFixed(2)}
+                <p className="text-gray-700 mb-4 p-1 border rounded-sm border-gray-700">
+                  Total: {formData.total.toFixed(2)}
                 </p>
 
                 <div className="flex gap-3">
@@ -256,7 +256,7 @@ export default function Home() {
                     onClick={closeModal}
                     className="relative inline-flex items-center justify-center p-0.5 mb-2 me-2 overflow-hidden text-md font-medium text-gray-900 rounded-lg group bg-gradient-to-br from-red-500 to-red-700 group-hover:from-red-700 group-hover:bg-red-600 dark:text-white dark:hover:text-gray-900 focus:ring-4 focus:outline-none focus:ring-red-600 dark:focus:ring-red-800"
                   >
-                    <span className="relative px-11 py-2 transition-all ease-in duration-75 bg-white dark:bg-gray-900 rounded-md group-hover:bg-transparent group-hover:dark:bg-transparent">
+                    <span className="relative px-11 py-2 transition-all ease-in duration-75 bg-white  rounded-md group-hover:bg-transparent group-hover:dark:bg-transparent">
                       Cancel
                     </span>
                   </button>

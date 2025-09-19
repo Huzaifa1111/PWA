@@ -5,7 +5,7 @@ import { format } from 'date-fns';
 import { setDailyPrices, getDailyPrices, syncData } from '../../lib/db';
 
 export default function Settings() {
-  const [prices, setPrices] = useState({ corns: '', maize: '', flour: '' });
+  const [prices, setPrices] = useState({ corns: '', mustard: '', wheat: '' });
   const [today, setToday] = useState('');
   const [modalMessage, setModalMessage] = useState('');
   const [error, setError] = useState('');
@@ -21,8 +21,8 @@ export default function Settings() {
         console.log('Loaded prices for Settings:', savedPrices);
         setPrices({
           corns: savedPrices.corns !== undefined ? savedPrices.corns.toString() : '',
-          maize: savedPrices.maize !== undefined ? savedPrices.maize.toString() : '',
-          flour: savedPrices.flour !== undefined ? savedPrices.flour.toString() : '',
+          mustard: savedPrices.mustard !== undefined ? savedPrices.mustard.toString() : '',
+          wheat: savedPrices.wheat !== undefined ? savedPrices.wheat.toString() : '',
         });
         try {
           await syncData();
@@ -66,8 +66,8 @@ export default function Settings() {
   const handleSubmit = async () => {
     const numericPrices = {
       corns: prices.corns ? parseFloat(prices.corns) : 0,
-      maize: prices.maize ? parseFloat(prices.maize) : 0,
-      flour: prices.flour ? parseFloat(prices.flour) : 0,
+      mustard: prices.mustard ? parseFloat(prices.mustard) : 0,
+      wheat: prices.wheat ? parseFloat(prices.wheat) : 0,
     };
     if (Object.values(numericPrices).some(p => p <= 0)) {
       setError('All prices must be greater than 0.');
@@ -92,15 +92,15 @@ export default function Settings() {
   };
 
   const clearPrices = () => {
-    setPrices({ corns: '', maize: '', flour: '' });
+    setPrices({ corns: '', mustard: '', wheat: '' });
     setError('');
   };
 
   const closeModal = () => setModalMessage('');
 
   return (
-    <div className="p-6 bg-white rounded-lg shadow max-w-lg mx-auto">
-      <h1 className="text-2xl font-bold mb-4">
+    <div className="mt-12 m-4 p-6 px-8 bg-white rounded-lg shadow max-w-lg mx-auto">
+      <h1 className="text-gray-700 text-xl font-bold mb-4">
         Set Daily Prices {today && `- ${today}`}
       </h1>
       {loading && <p className="text-gray-500 mb-4">Loading prices...</p>}
@@ -114,39 +114,45 @@ export default function Settings() {
           value={prices.corns}
           placeholder="Corns price"
           onChange={handleChange}
-          className="border p-2 w-full rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="text-gray-700 border p-2 w-full rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
         <input
-          name="maize"
+          name="mustard"
           type="number"
           min="0"
           step="0.01"
-          value={prices.maize}
-          placeholder="Maize price"
+          value={prices.mustard}
+          placeholder="Mustard price"
           onChange={handleChange}
-          className="border p-2 w-full rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="text-gray-700 border p-2 w-full rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
         <input
-          name="flour"
+          name="wheat"
           type="number"
           min="0"
           step="0.01"
-          value={prices.flour}
-          placeholder="Flour price"
+          value={prices.wheat}
+          placeholder="Wheat price"
           onChange={handleChange}
-          className="border p-2 w-full rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="text-gray-700 border p-2 w-full rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
         <button
           onClick={handleSubmit}
-          className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition w-full"
+            className="relative inline-flex items-center justify-center p-0.5 mb-2 me-2 overflow-hidden text-md font-medium text-gray-900 rounded-lg group bg-gradient-to-br from-teal-300 to-lime-300 group-hover:from-teal-300 group-hover:to-lime-300 dark:text-white dark:hover:text-gray-900 focus:ring-4 focus:outline-none focus:ring-lime-200 dark:focus:ring-lime-800 md:p-0.5 md:me-2"
         >
+                      <span className="relative px-12 py-2.5 transition-all ease-in duration-75 bg-white dark:bg-gray-900 rounded-md group-hover:bg-transparent group-hover:dark:bg-transparent md:px-12 md:py-2 max-sm:px-4 max-sm:py-2 max-sm:flex-1 max-sm:w-full max-sm:text-center">
+
           Save Prices
+          </span>
         </button>
         <button
           onClick={clearPrices}
-          className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 transition w-full mt-2"
+            className="relative inline-flex items-center justify-center p-0.5 mb-2 me-2 overflow-hidden text-md font-medium text-gray-900 rounded-lg group bg-gradient-to-br from-pink-500 to-orange-400 group-hover:from-pink-500 group-hover:to-orange-400 hover:text-white dark:text-white focus:ring-4 focus:outline-none focus:ring-pink-200 dark:focus:ring-pink-800 md:p-0.5 md:me-2"
         >
+                      <span className="relative px-12 py-2 transition-all ease-in duration-75 bg-white dark:bg-gray-900 rounded-md group-hover:bg-transparent group-hover:dark:bg-transparent md:px-14 md:py-2.5 max-sm:px-4 max-sm:py-2 max-sm:flex-1 max-sm:w-full max-sm:text-center">
+
           Clear Prices
+          </span>
         </button>
       </div>
       {modalMessage && (

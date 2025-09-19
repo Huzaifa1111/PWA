@@ -24,3 +24,259 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+/* Toggle styles for history page */
+.history-page .radio-inputs {
+  position: relative;
+  display: flex;
+  flex-wrap: nowrap; /* Prevent wrapping to keep tabs in a single row */
+  border-radius: 0.5rem;
+  background-color: #eee;
+  box-sizing: border-box;
+  box-shadow: 0 0 0px 1px rgba(0, 0, 0, 0.06);
+  padding: 0.2rem; /* Reduced padding */
+  width: 100%;
+  max-width: 240px; /* Reduced for mobile fit */
+  font-size: 12px; /* Smaller font size */
+  margin-bottom: 1rem;
+}
+
+.history-page .radio-inputs .radio {
+  flex: 1; /* Equal width for all tabs */
+  text-align: center;
+}
+
+.history-page .radio-inputs .radio input {
+  display: none;
+}
+
+.history-page .radio-inputs .radio .name {
+  display: flex;
+  cursor: pointer;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.5rem;
+  border: none;
+  padding: 0.3rem 0; /* Reduced padding */
+  color: rgba(51, 65, 85, 1);
+  transition: all 0.15s ease-in-out;
+}
+
+.history-page .radio-inputs .radio input:checked + .name {
+  background-color: #fff;
+  font-weight: 600;
+}
+
+/* Dropdown styles */
+.history-page .dropdown-container {
+  position: relative;
+  flex: 1; /* Equal width for dropdown tabs */
+}
+
+.history-page .dropdown-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 0.3rem 0.5rem; /* Reduced padding */
+  border-radius: 0.5rem;
+  background-color: #eee;
+  color: rgba(51, 65, 85, 1);
+  cursor: pointer;
+  transition: all 0.15s ease-in-out;
+  font-size: 12px; /* Match .radio-inputs font size */
+}
+
+.history-page .dropdown-toggle.active {
+  background-color: #fff;
+  font-weight: 600;
+}
+
+.history-page .dropdown-toggle .arrow {
+  transition: transform 0.2s ease;
+  margin-left: 0.25rem;
+}
+
+.history-page .dropdown-toggle .arrow.rotate {
+  transform: rotate(180deg);
+}
+
+.history-page .dropdown-menu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  width: 100%;
+  background-color: #eee;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.5rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  z-index: 10;
+  margin-top: 0.25rem;
+}
+
+.history-page .dropdown-menu button {
+  display: block;
+  width: 100%;
+  padding: 0.4rem 0.8rem;
+  text-align: left;
+  font-size: 0.875rem;
+  color: rgba(51, 65, 85, 1);
+  background: none;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.15s ease-in-out;
+}
+
+.history-page .dropdown-menu button:hover {
+  background-color: #f9fafb;
+}
+
+.history-page .dropdown-menu button.active {
+  background-color: #fff;
+  font-weight: 600;
+}
+
+/* Responsive table styles for history page */
+.history-page .history-table-container {
+  width: 100%;
+  overflow-x: auto; /* Enable horizontal scrolling on mobile */
+  max-height: 300px; /* Enable vertical scrolling */
+  overflow-y: auto;
+}
+
+.history-page .history-table {
+  min-width: 100%;
+  background-color: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.5rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  border-collapse: collapse;
+}
+
+.history-page .history-table thead {
+  background-color: #f3f4f6;
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
+.history-page .history-table th {
+  padding: 0.75rem 1rem;
+  font-size: 0.875rem;
+  color: #374151;
+  border-bottom: 1px solid #e5e7eb;
+  text-align: left; /* Align headers to the left */
+  font-weight: 500;
+}
+
+.history-page .history-table td {
+  padding: 0.75rem 1rem;
+  font-size: 0.875rem;
+  color: #374151;
+  border-bottom: 1px solid #e5e7eb;
+  text-align: right; /* Align data cells to the right */
+}
+
+.history-page .history-table tr:hover {
+  background-color: #f9fafb;
+}
+
+/* Mobile-specific styles */
+@media (max-width: 640px) {
+  .history-page .radio-inputs {
+    width: 100%;
+    font-size: 10px; /* Smaller font for mobile */
+  }
+
+  .history-page .radio-inputs .radio .name {
+    padding: 0.25rem 0; /* Further reduced padding */
+  }
+
+  .history-page .dropdown-toggle {
+    padding: 0.25rem 0.4rem; /* Further reduced padding */
+    font-size: 10px; /* Match .radio-inputs font size */
+  }
+
+  .history-page .dropdown-menu button {
+    font-size: 0.75rem;
+    padding: 0.3rem 0.6rem;
+  }
+
+  .history-page .history-table-container {
+    overflow-x: auto;
+    max-height: 250px; /* Slightly smaller height for mobile */
+  }
+
+  .history-page .history-table {
+    min-width: 300px; /* Ensure table is wide enough for content */
+  }
+
+  /* Stacked layout for very small screens */
+  @media (max-width: 400px) {
+    .history-page .history-table {
+      display: block;
+    }
+
+    .history-page .history-table thead {
+      display: none; /* Hide headers for stacked layout */
+    }
+
+    .history-page .history-table tbody,
+    .history-page .history-table tr,
+    .history-page .history-table td {
+      display: block;
+      width: 100%;
+    }
+
+    .history-page .history-table tr {
+      margin-bottom: 0.15rem; /* Reduced space between rows */
+      padding: 0.2rem;
+      border: 1px solid #e5e7eb;
+      border-radius: 0.5rem;
+      background-color: #fff;
+    }
+
+    .history-page .history-table td {
+      padding: 0.2rem 0.5rem;
+      font-size: 0.75rem;
+      position: relative;
+      text-align: right; /* Align data to the right */
+    }
+
+    .history-page .history-table td::before {
+      content: attr(data-label);
+      position: absolute;
+      left: 0.5rem;
+      font-weight: 600;
+      color: #374151;
+      text-align: left; /* Align labels to the left */
+    }
+
+    .history-page .history-table td:not(:last-child) {
+      border-bottom: none;
+    }
+
+    /* First row: Name */
+    .history-page .history-table td[data-label="Name"] {
+      padding: 0.2rem 0.5rem;
+    }
+
+    /* Second row: Kilos and Date */
+    .history-page .history-table td[data-label="Kilos"],
+    .history-page .history-table td[data-label="Date"] {
+      display: inline-block;
+      width: 50%;
+      padding: 0.2rem 0.5rem;
+    }
+
+    /* Third row: Total */
+    .history-page .history-table td[data-label="Total"] {
+      padding: 0.2rem 0.5rem;
+    }
+
+    /* Hide Rate in stacked layout */
+    .history-page .history-table td[data-label="Rate"] {
+      display: none;
+    }
+  }
+}
